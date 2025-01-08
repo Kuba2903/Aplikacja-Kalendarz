@@ -1,39 +1,61 @@
 'use client';
+import React from 'react';
+import { signOut } from 'firebase/auth';
+import { getAuth } from 'firebase/auth';
+import { useRouter } from 'next/navigation';
+import { useAuth } from "../../lib/AuthContext"; // Importujemy useAuth
 
-import { signOut } from "firebase/auth";
-import { auth } from "../../lib/firebase"; // Import Firebase auth
-import { useAuth } from "../../lib/AuthContext";
-import { useRouter } from "next/navigation"; // Wykorzystaj router do przekierowania
-
-export default function LogoutButton() {
-  const { user } = useAuth(); // Uzyskanie informacji o użytkowniku z AuthContext
+const SignOutPage = () => {
+  const { user } = useAuth(); // Uzyskujemy dostęp do zalogowanego użytkownika
+  const auth = getAuth();
   const router = useRouter();
 
-  const handleLogout = async () => {
-    try {
-      await signOut(auth); // Wylogowanie użytkownika
-      router.push("/"); // Przekierowanie do strony głównej po wylogowaniu
-    } catch (error) {
-      console.error("Error signing out:", error);
-    }
+  const handleSignOut = (e) => {
+    e.preventDefault();
+
+    signOut(auth)
+      .then(() => {
+        // Po pomyślnym wylogowaniu, przekierowanie na stronę główną lub logowania
+        router.push('/user/signin');
+      })
+      .catch((error) => {
+        console.error('Error signing out: ', error);
+        // Opcjonalnie możesz dodać komunikat o błędzie
+      });
   };
 
-  return user ? (
-    <button
-      onClick={handleLogout}
-      style={{
-        padding: "0.75rem",
-        backgroundColor: "#ff4747", // Czerwony dla przycisku wylogowania
-        color: "#ffffff",
-        border: "none",
-        borderRadius: "4px",
-        fontSize: "1rem",
-        cursor: "pointer",
-      }}
-    >
-      Logout
-    </button>
-  ) : (
-    <p>You are not logged in</p> // Jeśli użytkownik nie jest zalogowany
+  if (!user) {
+    // Jeśli użytkownik nie jest zalogowany, nie pokazuj formularza wylogowania
+    return (
+      <div style={{ maxWidth: '400px', margin: '50px auto', padding: '20px', border: '1px solid #ccc', borderRadius: '8px' }}>
+        <h2>You are not logged in</h2>
+        <p>Please log in to access this page.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ maxWidth: '400px', margin: '50px auto', padding: '20px', border: '1px solid #ccc', borderRadius: '8px' }}>
+      <h2>Sign Out</h2>
+      <form onSubmit={handleSignOut}>
+        <div style={{ marginBottom: '15px' }}>
+          <button
+            type="submit"
+            style={{
+              width: '100%',
+              padding: '10px',
+              backgroundColor: '#FF6347', // Możesz zmienić kolor na inny
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+            }}
+          >
+            Sign Out
+          </button>
+        </div>
+      </form>
+    </div>
   );
-}
+};
+
+export default SignOutPage;
