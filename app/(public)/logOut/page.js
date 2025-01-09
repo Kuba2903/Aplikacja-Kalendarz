@@ -1,60 +1,48 @@
 'use client';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { signOut } from 'firebase/auth';
 import { getAuth } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import { useAuth } from "../../lib/AuthContext";
 
 const SignOutPage = () => {
-  const { user, loading } = useAuth(); // Dodajemy loading ze stanu
+  const { user, loading } = useAuth();
   const auth = getAuth();
   const router = useRouter();
+  const [userEmail, setUserEmail] = useState('');
 
-  const handleSignOut = (e) => {
-    e.preventDefault();
-    signOut(auth)
-      .then(() => {
-        router.push('/user/signin');
-      })
-      .catch((error) => {
-        console.error('Error signing out: ', error);
-      });
-  };
+  useEffect(() => {
+    if (user && !loading) {
+      setUserEmail(user.email);
+      
+      signOut(auth)
+        .then(() => {
+          router.push('/signIn');
+        })
+        .catch((error) => {
+          console.error('Error signing out: ', error);
+        });
+    }
+  }, [user, loading, auth, router]);
 
-  // Dodajemy sprawdzenie loading
   if (loading) {
-    return null; // lub jakiś loading spinner
+    return null;
   }
 
   if (!user) {
     return (
       <div style={{ maxWidth: '400px', margin: '50px auto', padding: '20px', border: '1px solid #ccc', borderRadius: '8px' }}>
-        <h2>You are not logged in</h2>
-        <p>Please log in to access this page.</p>
+        <h2>Nie jesteś zalogowany</h2>
+        <p>Zaloguj się, aby uzyskać dostęp do tej strony.</p>
       </div>
     );
   }
 
   return (
     <div style={{ maxWidth: '400px', margin: '50px auto', padding: '20px', border: '1px solid #ccc', borderRadius: '8px' }}>
-      <h2>Sign Out</h2>
-      <form onSubmit={handleSignOut}>
-        <div style={{ marginBottom: '15px' }}>
-          <button
-            type="submit"
-            style={{
-              width: '100%',
-              padding: '10px',
-              backgroundColor: '#FF6347', // Możesz zmienić kolor na inny
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-            }}
-          >
-            Sign Out
-          </button>
-        </div>
-      </form>
+      <h2>Wylogowywanie...</h2>
+      <p>Do zobaczenia, {userEmail}!</p>
+      <p>Zostaniesz przekierowany do strony logowania.</p>
     </div>
   );
 };

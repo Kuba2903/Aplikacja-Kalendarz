@@ -1,4 +1,3 @@
-// app/not-found.js
 "use client";
 
 import { useRouter } from "next/navigation";
@@ -12,8 +11,8 @@ const NotFoundPage = () => {
 
   return (
     <div style={{ textAlign: "center", marginTop: "100px" }}>
-      <h1>404 - Page Not Found</h1>
-      <p>The page you are looking for does not exist.</p>
+      <h1>404 - Strona nie znaleziona</h1>
+      <p>Strona którą szukasz nie istnieje.</p>
       <button
         onClick={handleGoHome}
         style={{
@@ -27,7 +26,7 @@ const NotFoundPage = () => {
           cursor: "pointer",
         }}
       >
-        Go Back to Home
+        Wróć do strony głównej
       </button>
     </div>
   );

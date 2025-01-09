@@ -11,18 +11,17 @@ const SignInPage = () => {
   const auth = getAuth();
   const params = useSearchParams();
   const router = useRouter();
-  const returnUrl = params.get('returnUrl') || '/'; // Domyślnie, jeśli brak returnUrl, przejdź do głównej ścieżki
+  const returnUrl = params.get('returnUrl') || '/'; 
 
   const handleSignIn = (e) => {
     e.preventDefault();
 
-    // Walidacja
     if (!email.includes('@')) {
-      setError('Invalid email address.');
+      setError('Błędny adres email.');
       return;
     }
     if (password.length < 6) {
-      setError('Password must be at least 6 characters long.');
+      setError('Hasło musi posiadać przynajmniej 6 znaków');
       return;
     }
 
@@ -35,16 +34,14 @@ const SignInPage = () => {
         router.push(returnUrl);
       })
       .catch((error) => {
-        // Zamiast logować błąd w konsoli, wyświetlamy go w formularzu
-        setError('Failed to sign in. Please check your credentials.');
+        setError('Błąd logowania');
       });
   };
 
   return (
     <div style={{ maxWidth: '400px', margin: '50px auto', padding: '20px', border: '1px solid #ccc', borderRadius: '8px' }}>
-      <h2>Sign In</h2>
+      <h2>Zaloguj się</h2>
       
-      {/* Wyświetlanie błędów logowania, jeśli wystąpią */}
       {error && (
         <div className="alert alert-error" style={{ marginBottom: '15px' }}>
           <span>{error}</span>
@@ -64,7 +61,7 @@ const SignInPage = () => {
           />
         </div>
         <div style={{ marginBottom: '15px' }}>
-          <label htmlFor="password" style={{ display: 'block', marginBottom: '5px' }}>Password:</label>
+          <label htmlFor="password" style={{ display: 'block', marginBottom: '5px' }}>Hasło:</label>
           <input
             type="password"
             id="password"
@@ -75,7 +72,7 @@ const SignInPage = () => {
           />
         </div>
         <button type="submit" style={{ width: '100%', padding: '10px', backgroundColor: '#007BFF', color: 'white', border: 'none', borderRadius: '4px' }}>
-          Sign In
+          Zaloguj się
         </button>
       </form>
     </div>

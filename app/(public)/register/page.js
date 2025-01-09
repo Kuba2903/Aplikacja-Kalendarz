@@ -10,7 +10,6 @@ export default function RegisterForm() {
   const router = useRouter();
   const auth = getAuth();
 
-  // Jeśli użytkownik jest zalogowany, nie wyświetlamy formularza rejestracji
   if (user) {
     return null;
   }
@@ -18,9 +17,8 @@ export default function RegisterForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [registerError, setRegisterError] = useState(""); // Stan błędów rejestracji
+  const [registerError, setRegisterError] = useState(""); 
 
-  // Funkcja walidacji haseł
   const validatePasswords = () => {
     if (password !== confirmPassword) {
       setRegisterError("Hasła muszą być takie same.");
@@ -30,7 +28,7 @@ export default function RegisterForm() {
       setRegisterError("Hasło musi mieć co najmniej 6 znaków.");
       return false;
     }
-    setRegisterError(""); // Resetujemy błąd, jeśli hasła są poprawne
+    setRegisterError(""); 
     return true;
   };
 
@@ -39,20 +37,16 @@ export default function RegisterForm() {
 
     if (!validatePasswords()) return;
 
-    // Tworzymy użytkownika w Firebase
     createUserWithEmailAndPassword(auth, email, password)
       .then((userCredential) => {
         console.log("Użytkownik zarejestrowany!");
 
-        // Wysyłamy e-mail weryfikacyjny
         sendEmailVerification(auth.currentUser)
           .then(() => {
             console.log("E-mail weryfikacyjny wysłany!");
 
-            // Automatycznie wylogowujemy użytkownika po rejestracji
             signOut(auth);
 
-            // Przekierowanie na stronę weryfikacji
             router.push("/user/verify");
           })
           .catch((error) => {
