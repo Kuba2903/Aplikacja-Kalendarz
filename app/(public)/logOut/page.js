@@ -3,29 +3,30 @@ import React from 'react';
 import { signOut } from 'firebase/auth';
 import { getAuth } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
-import { useAuth } from "../../lib/AuthContext"; // Importujemy useAuth
+import { useAuth } from "../../lib/AuthContext";
 
 const SignOutPage = () => {
-  const { user } = useAuth(); // Uzyskujemy dostęp do zalogowanego użytkownika
+  const { user, loading } = useAuth(); // Dodajemy loading ze stanu
   const auth = getAuth();
   const router = useRouter();
 
   const handleSignOut = (e) => {
     e.preventDefault();
-
     signOut(auth)
       .then(() => {
-        // Po pomyślnym wylogowaniu, przekierowanie na stronę główną lub logowania
         router.push('/user/signin');
       })
       .catch((error) => {
         console.error('Error signing out: ', error);
-        // Opcjonalnie możesz dodać komunikat o błędzie
       });
   };
 
+  // Dodajemy sprawdzenie loading
+  if (loading) {
+    return null; // lub jakiś loading spinner
+  }
+
   if (!user) {
-    // Jeśli użytkownik nie jest zalogowany, nie pokazuj formularza wylogowania
     return (
       <div style={{ maxWidth: '400px', margin: '50px auto', padding: '20px', border: '1px solid #ccc', borderRadius: '8px' }}>
         <h2>You are not logged in</h2>

@@ -2,7 +2,35 @@
 
 import React from "react";
 import { FaHome, FaUser, FaSignInAlt, FaSignOutAlt } from "react-icons/fa";
-import { AuthProvider } from "./lib/AuthContext";
+import { AuthProvider, useAuth } from "./lib/AuthContext";
+import Link from 'next/link';
+
+const Navigation = () => {
+  const { user } = useAuth();
+  
+  return (
+    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+      <h1>MyApp</h1>
+      <nav>
+        {user ? (
+          <div style={{ color: "white" }}>
+            Hello, {user.displayName || user.email}
+          </div>
+        ) : (
+          <>
+            <Link href="/signIn" style={{ color: "white", marginRight: "15px" }}>
+              <FaSignInAlt /> Sign In
+            </Link>
+            <Link href="/register" style={{ color: "white" }}>
+              <FaUser /> Register
+            </Link>
+          </>
+        )}
+      </nav>
+    </div>
+  );
+};
+
 
 const Layout = ({ children }) => {
   return (
@@ -14,19 +42,8 @@ const Layout = ({ children }) => {
       <body style={{ margin: 0, fontFamily: "Arial, sans-serif" }}>
         <AuthProvider>
           <div style={{ display: "flex", minHeight: "100vh", flexDirection: "column" }}>
-            {/* Top Bar */}
             <header style={{ backgroundColor: "#007BFF", padding: "10px", color: "white" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <h1>MyApp</h1>
-                <nav>
-                  <a href="/signIn" style={{ color: "white", marginRight: "15px" }}>
-                    <FaSignInAlt /> Sign In
-                  </a>
-                  <a href="/register" style={{ color: "white" }}>
-                    <FaUser /> Register
-                  </a>
-                </nav>
-              </div>
+              <Navigation />
             </header>
 
             {/* Main Content with Sidebar */}
@@ -41,9 +58,9 @@ const Layout = ({ children }) => {
                       </a>
                     </li>
                     <li>
-                      <a href="/profile">
-                        <FaUser /> Profile
-                      </a>
+                    <Link href="/user/profile" >
+                      <FaUser /> Profile
+                    </Link>
                     </li>
                     <li>
                       <a href="/logOut">
