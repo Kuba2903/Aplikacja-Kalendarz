@@ -1,115 +1,82 @@
 'use client';
+import React, { useState } from 'react';
+import { signInWithEmailAndPassword, setPersistence, browserSessionPersistence } from 'firebase/auth';
+import { getAuth } from 'firebase/auth';
+import { useSearchParams, useRouter } from 'next/navigation';
 
-import { signInWithEmailAndPassword, setPersistence, browserSessionPersistence } from "firebase/auth";
-import { auth } from "../../lib/firebase";
-import { useAuth } from "../../lib/AuthContext";
-import { useSearchParams, useRouter } from "next/navigation";
-import { useState } from "react";
-import { Alert } from '@mui/material';
-
-export default function SignInForm() {
-  const { user, loading } = useAuth();
+const SignInPage = () => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const auth = getAuth();
   const params = useSearchParams();
   const router = useRouter();
-  const returnUrl = params.get("returnUrl") || "/"; // Jeśli nie ma returnUrl, użyj ścieżki głównej
+  const returnUrl = params.get('returnUrl') || '/'; 
 
-  const [error, setError] = useState(""); // Stan na komunikat o błędzie
-
-  const onSubmit = async (e) => {
+  const handleSignIn = (e) => {
     e.preventDefault();
-    const email = e.target["email"].value;
-    const password = e.target["password"].value;
 
-    try {
-      // Ustawienie persistence dla sesji
-      await setPersistence(auth, browserSessionPersistence);
-      
-      // Próba logowania
-      await signInWithEmailAndPassword(auth, email, password);
-      
-      // Przekierowanie na returnUrl lub stronę główną
-      router.push(returnUrl);
-    } catch (error) {
-      // Ustawienie błędu do wyświetlenia w formularzu
-      setError("Błąd logowania: " + error.message); // Możesz dostosować komunikat
+    if (!email.includes('@')) {
+      setError('Błędny adres email.');
+      return;
     }
+    if (password.length < 6) {
+      setError('Hasło musi posiadać przynajmniej 6 znaków');
+      return;
+    }
+
+    setError('');
+    setPersistence(auth, browserSessionPersistence)
+      .then(() => {
+        return signInWithEmailAndPassword(auth, email, password);
+      })
+      .then(() => {
+        router.push(returnUrl);
+      })
+      .catch((error) => {
+        setError('Błąd logowania');
+      });
   };
 
-  if (loading) return <p>Loading...</p>; // Wyświetl ekran ładowania
-
-  return user ? (
-    <p>You are already signed in!</p> // Opcjonalnie przekieruj, jeśli użytkownik jest już zalogowany
-  ) : (
-    <div
-      style={{
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        minHeight: "100vh",
-        backgroundColor: "#f4f4f4",
-      }}
-    >
-      <form
-        onSubmit={onSubmit}
-        style={{
-          backgroundColor: "#ffffff",
-          padding: "2rem",
-          borderRadius: "8px",
-          boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
-          width: "100%",
-          maxWidth: "400px",
-          display: "flex",
-          flexDirection: "column",
-          gap: "1rem",
-        }}
-      >
-        <h2 style={{ textAlign: "center", marginBottom: "1rem", color: "#333" }}>
-          Sign In
-        </h2>
-        {error && (
-          <Alert severity="error" className="mb-4">
-          {error}
-        </Alert>
-        )}
-        <label style={{ fontWeight: "bold", color: "#555" }}>Email</label>
-        <input
-          type="email"
-          id="email"
-          required
-          style={{
-            padding: "0.5rem",
-            border: "1px solid #ccc",
-            borderRadius: "4px",
-            fontSize: "1rem",
-          }}
-        />
-        <label style={{ fontWeight: "bold", color: "#555" }}>Password</label>
-        <input
-          type="password"
-          id="password"
-          required
-          style={{
-            padding: "0.5rem",
-            border: "1px solid #ccc",
-            borderRadius: "4px",
-            fontSize: "1rem",
-          }}
-        />
-        <button
-          type="submit"
-          style={{
-            padding: "0.75rem",
-            backgroundColor: "#4caf50",
-            color: "#ffffff",
-            border: "none",
-            borderRadius: "4px",
-            fontSize: "1rem",
-            cursor: "pointer",
-          }}
-        >
-          Sign In
+  return (
+    <div style={{ maxWidth: '400px', margin: '50px auto', padding: '20px', border: '1px solid #ccc', borderRadius: '8px' }}>
+      <h2>Zaloguj się</h2>
+      
+      {error && (
+        <div className="alert alert-error" style={{ marginBottom: '15px' }}>
+          <span>{error}</span>
+        </div>
+      )}
+      
+      <form onSubmit={handleSignIn}>
+        <div style={{ marginBottom: '15px' }}>
+          <label htmlFor="email" style={{ display: 'block', marginBottom: '5px' }}>Email:</label>
+          <input
+            type="email"
+            id="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
+          />
+        </div>
+        <div style={{ marginBottom: '15px' }}>
+          <label htmlFor="password" style={{ display: 'block', marginBottom: '5px' }}>Hasło:</label>
+          <input
+            type="password"
+            id="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
+          />
+        </div>
+        <button type="submit" style={{ width: '100%', padding: '10px', backgroundColor: '#007BFF', color: 'white', border: 'none', borderRadius: '4px' }}>
+          Zaloguj się
         </button>
       </form>
     </div>
   );
-}
+};
+
+export default SignInPage;

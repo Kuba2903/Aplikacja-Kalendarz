@@ -1,70 +1,151 @@
-'use client';
+"use client";
 
-import { useState } from "react";
-import { AuthProvider } from './lib/AuthContext';
+import React from "react";
+import { FaHome, FaUser, FaSignInAlt, FaSignOutAlt, FaCalendarAlt } from "react-icons/fa";
+import { AuthProvider, useAuth } from "./lib/AuthContext";
 import Link from 'next/link';
-import { FaUserPlus, FaSignInAlt, FaSignOutAlt } from "react-icons/fa"; // Ikona wylogowania
-import LogoutButton from './(public)/logOut/page';
 
-const menuItems = [
-  { id: 1, label: "Register", url: "register", icon: <FaUserPlus /> },
-  { id: 2, label: "Sign In", url: "signIn", icon: <FaSignInAlt /> },
-];
+const Navigation = () => {
+  const { user } = useAuth();
+  
+  return (
+    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+      <h1>Calendar App</h1>
+      <nav>
+        {user ? (
+          <div style={{ color: "white", display: "flex", alignItems: "center", gap: "10px" }}>
+            {user.photoURL ? (
+              <img 
+                src={user.photoURL} 
+                alt="Zdjęcie profilowe" 
+                style={{ 
+                  width: "32px", 
+                  height: "32px", 
+                  borderRadius: "50%",
+                  objectFit: "cover"
+                }} 
+              />
+            ) : (
+              <FaUser size={24} />
+            )}
+            Witaj, {user.displayName || user.email}
+          </div>
+        ) : (
+          <>
+            <Link href="/signIn" style={{ color: "white", marginRight: "15px" }}>
+              <FaSignInAlt /> Zaloguj się
+            </Link>
+            <Link href="/register" style={{ color: "white" }}>
+              <FaUser /> Zarejestruj się
+            </Link>
+          </>
+        )}
+      </nav>
+    </div>
+  );
+};
 
-export default function RootLayout({ children }) {
-  // Stan do śledzenia aktywnego URL
-  const [activeUrl, setActiveUrl] = useState(menuItems[0].url);
+const Sidebar = () => {
+  const { user } = useAuth();
 
   return (
-    <AuthProvider>
-      <html lang="en">
-        <body className="antialiased" style={{ display: "flex", height: "100vh" }}>
-          {/* Sidebar */}
-          <div
-            style={{
-              width: "250px",
-              backgroundColor: "#2d2d2d",
-              color: "#fff",
-              padding: "1rem",
-              display: "flex",
-              flexDirection: "column",
-              gap: "1rem",
-            }}
-          >
-            <h2 style={{ textAlign: "center" }}>My App</h2>
-            <nav style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-              {menuItems.map((item) => (
-                <Link
-                  key={item.id}
-                  href={item.url}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "0.5rem",
+    <aside style={{ width: "200px", backgroundColor: "#F8F9FA", padding: "10px" }}>
+      <nav>
+        <ul style={{ listStyleType: "none", padding: 0 }}>
+          <li style={{ marginBottom: "15px" }}>
+            <Link 
+              href="/home" 
+              style={{ 
+                display: "flex", 
+                alignItems: "center", 
+                gap: "10px",
+                textDecoration: "none",
+                color: "inherit"
+              }}
+            >
+              <FaHome /> Strona główna
+            </Link>
+          </li>
+          
+          {user && (
+            <>
+              <li style={{ marginBottom: "15px" }}>
+                <Link 
+                  href="/calendar" 
+                  style={{ 
+                    display: "flex", 
+                    alignItems: "center", 
+                    gap: "10px",
                     textDecoration: "none",
-                    color: activeUrl === item.url ? "#4caf50" : "#fff",
-                    fontWeight: activeUrl === item.url ? "bold" : "normal",
+                    color: "inherit"
                   }}
-                  onClick={() => setActiveUrl(item.url)} // Zaktualizowanie aktywnego URL
                 >
-                  {item.icon} {/* Ikona */}
-                  {item.label}
+                  <FaCalendarAlt /> Kalendarz
                 </Link>
-              ))}
-
-              {/* Dodanie przycisku wylogowania */}
-              <div>
-                <LogoutButton />
-              </div>
-            </nav>
-          </div>
-
-          {/* Main Content */}
-          <div style={{ flex: 1, padding: "1rem" }}>
-            {children}
-          </div>
-        </body>
-      </html>
-    </AuthProvider>
+              </li>
+              <li style={{ marginBottom: "15px" }}>
+                <Link 
+                  href="/user/profile" 
+                  style={{ 
+                    display: "flex", 
+                    alignItems: "center", 
+                    gap: "10px",
+                    textDecoration: "none",
+                    color: "inherit"
+                  }}
+                >
+                  <FaUser /> Profil
+                </Link>
+              </li>
+              <li>
+                <Link 
+                  href="/logOut" 
+                  style={{ 
+                    display: "flex", 
+                    alignItems: "center", 
+                    gap: "10px",
+                    textDecoration: "none",
+                    color: "inherit"
+                  }}
+                >
+                  <FaSignOutAlt /> Wyloguj się
+                </Link>
+              </li>
+            </>
+          )}
+        </ul>
+      </nav>
+    </aside>
   );
-}
+};
+
+const Layout = ({ children }) => {
+  return (
+    <html lang="en">
+      <head>
+        <title>MyApp</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      </head>
+      <body style={{ margin: 0, fontFamily: "Arial, sans-serif" }}>
+        <AuthProvider>
+          <div style={{ display: "flex", minHeight: "100vh", flexDirection: "column" }}>
+            <header style={{ backgroundColor: "#007BFF", padding: "10px", color: "white" }}>
+              <Navigation />
+            </header>
+
+            <div style={{ display: "flex", flex: 1 }}>
+              <Sidebar />
+              <main style={{ flex: 1, padding: "20px" }}>{children}</main>
+            </div>
+
+            <footer style={{ backgroundColor: "#007BFF", padding: "10px", color: "white", textAlign: "center" }}>
+              <p>© 2025 Calendar App. Wszelkie prawa zastrzeżone.</p>
+            </footer>
+          </div>
+        </AuthProvider>
+      </body>
+    </html>
+  );
+};
+
+export default Layout;

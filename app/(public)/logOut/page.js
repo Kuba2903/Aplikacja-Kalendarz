@@ -1,39 +1,50 @@
 'use client';
-
-import { signOut } from "firebase/auth";
-import { auth } from "../../lib/firebase"; // Import Firebase auth
+import React, { useEffect, useState } from 'react';
+import { signOut } from 'firebase/auth';
+import { getAuth } from 'firebase/auth';
+import { useRouter } from 'next/navigation';
 import { useAuth } from "../../lib/AuthContext";
-import { useRouter } from "next/navigation"; // Wykorzystaj router do przekierowania
 
-export default function LogoutButton() {
-  const { user } = useAuth(); // Uzyskanie informacji o użytkowniku z AuthContext
+const SignOutPage = () => {
+  const { user, loading } = useAuth();
+  const auth = getAuth();
   const router = useRouter();
+  const [userEmail, setUserEmail] = useState('');
 
-  const handleLogout = async () => {
-    try {
-      await signOut(auth); // Wylogowanie użytkownika
-      router.push("/"); // Przekierowanie do strony głównej po wylogowaniu
-    } catch (error) {
-      console.error("Error signing out:", error);
+  useEffect(() => {
+    if (user && !loading) {
+      setUserEmail(user.email);
+      
+      signOut(auth)
+        .then(() => {
+          router.push('/signIn');
+        })
+        .catch((error) => {
+          console.error('Error signing out: ', error);
+        });
     }
-  };
+  }, [user, loading, auth, router]);
 
-  return user ? (
-    <button
-      onClick={handleLogout}
-      style={{
-        padding: "0.75rem",
-        backgroundColor: "#ff4747", // Czerwony dla przycisku wylogowania
-        color: "#ffffff",
-        border: "none",
-        borderRadius: "4px",
-        fontSize: "1rem",
-        cursor: "pointer",
-      }}
-    >
-      Logout
-    </button>
-  ) : (
-    <p>You are not logged in</p> // Jeśli użytkownik nie jest zalogowany
+  if (loading) {
+    return null;
+  }
+
+  if (!user) {
+    return (
+      <div style={{ maxWidth: '400px', margin: '50px auto', padding: '20px', border: '1px solid #ccc', borderRadius: '8px' }}>
+        <h2>Nie jesteś zalogowany</h2>
+        <p>Zaloguj się, aby uzyskać dostęp do tej strony.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ maxWidth: '400px', margin: '50px auto', padding: '20px', border: '1px solid #ccc', borderRadius: '8px' }}>
+      <h2>Wylogowywanie...</h2>
+      <p>Do zobaczenia, {userEmail}!</p>
+      <p>Zostaniesz przekierowany do strony logowania.</p>
+    </div>
   );
-}
+};
+
+export default SignOutPage;

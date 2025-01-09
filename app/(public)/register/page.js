@@ -1,115 +1,119 @@
-'use client';
+"use client";
 
-import { createUserWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../../lib/firebase";
+import { useState } from "react";
+import { getAuth, createUserWithEmailAndPassword, sendEmailVerification, signOut } from "firebase/auth";
 import { useAuth } from "../../lib/AuthContext";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 
-export default function Register() {
-  const { user, loading } = useAuth();
-  const params = useSearchParams();
+export default function RegisterForm() {
+  const { user } = useAuth();
   const router = useRouter();
-  const returnUrl = params.get("returnUrl") || "/";
+  const auth = getAuth();
 
-  const onSubmit = async (e) => {
-    e.preventDefault();
-    const email = e.target["email"].value;
-    const password = e.target["password"].value;
-    const passwordConfirm = e.target["passwordConfirm"].value;
+  if (user) {
+    return null;
+  }
 
-    if (password !== passwordConfirm) {
-      console.error("Passwords do not match");
-      return;
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [registerError, setRegisterError] = useState(""); 
+
+  const validatePasswords = () => {
+    if (password !== confirmPassword) {
+      setRegisterError("Hasła muszą być takie same.");
+      return false;
     }
-
-    try {
-      await createUserWithEmailAndPassword(auth, email, password);
-      router.push(returnUrl);
-    } catch (error) {
-      console.error("Error signing up:", error.code, error.message);
+    if (password.length < 6) {
+      setRegisterError("Hasło musi mieć co najmniej 6 znaków.");
+      return false;
     }
+    setRegisterError(""); 
+    return true;
   };
 
-  if (loading) return <p>Loading...</p>; // Show a loading state
+  const onSubmit = (e) => {
+    e.preventDefault();
 
-  return user ? (
-    <p>You are already registered!</p> // Optionally, redirect if already logged in
-  ) : (
-    <div
-      style={{
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        minHeight: "100vh",
-        backgroundColor: "#f4f4f4",
-      }}
-    >
-      <form
-        onSubmit={onSubmit}
-        style={{
-          backgroundColor: "#ffffff",
-          padding: "2rem",
-          borderRadius: "8px",
-          boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
-          width: "100%",
-          maxWidth: "400px",
-          display: "flex",
-          flexDirection: "column",
-          gap: "1rem",
-        }}
-      >
-        <h2 style={{ textAlign: "center", marginBottom: "1rem", color: "#333" }}>
-          Register
-        </h2>
-        <label style={{ fontWeight: "bold", color: "#555" }}>Email</label>
-        <input
-          type="email"
-          id="email"
-          required
-          style={{
-            padding: "0.5rem",
-            border: "1px solid #ccc",
-            borderRadius: "4px",
-            fontSize: "1rem",
-          }}
-        />
-        <label style={{ fontWeight: "bold", color: "#555" }}>Password</label>
-        <input
-          type="password"
-          id="password"
-          required
-          style={{
-            padding: "0.5rem",
-            border: "1px solid #ccc",
-            borderRadius: "4px",
-            fontSize: "1rem",
-          }}
-        />
-        <label style={{ fontWeight: "bold", color: "#555" }}>Confirm Password</label>
-        <input
-          type="password"
-          id="passwordConfirm"
-          required
-          style={{
-            padding: "0.5rem",
-            border: "1px solid #ccc",
-            borderRadius: "4px",
-            fontSize: "1rem",
-          }}
-        />
+    if (!validatePasswords()) return;
+
+    createUserWithEmailAndPassword(auth, email, password)
+      .then((userCredential) => {
+        console.log("Użytkownik zarejestrowany!");
+
+        sendEmailVerification(auth.currentUser)
+          .then(() => {
+            console.log("E-mail weryfikacyjny wysłany!");
+
+            signOut(auth);
+
+            router.push("/user/verify");
+          })
+          .catch((error) => {
+            setRegisterError(error.message);
+            console.dir(error);
+          });
+      })
+      .catch((error) => {
+        setRegisterError(error.message);
+        console.dir(error);
+      });
+  };
+
+  return (
+    <div style={{ maxWidth: "400px", margin: "50px auto", padding: "20px", border: "1px solid #ccc", borderRadius: "8px" }}>
+      <h2>Rejestracja</h2>
+      {registerError && (
+        <div style={{ color: "red", marginBottom: "15px", padding: "10px", backgroundColor: "#f8d7da", border: "1px solid #f5c6cb", borderRadius: "5px" }}>
+          <strong>Błąd:</strong> {registerError}
+        </div>
+      )}
+      <form onSubmit={onSubmit}>
+        <div style={{ marginBottom: "15px" }}>
+          <label htmlFor="email" style={{ display: "block", marginBottom: "5px" }}>Email:</label>
+          <input
+            type="email"
+            id="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            style={{ width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #ccc" }}
+          />
+        </div>
+        <div style={{ marginBottom: "15px" }}>
+          <label htmlFor="password" style={{ display: "block", marginBottom: "5px" }}>Hasło:</label>
+          <input
+            type="password"
+            id="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            style={{ width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #ccc" }}
+          />
+        </div>
+        <div style={{ marginBottom: "15px" }}>
+          <label htmlFor="confirmPassword" style={{ display: "block", marginBottom: "5px" }}>Powtórz Hasło:</label>
+          <input
+            type="password"
+            id="confirmPassword"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            required
+            style={{ width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #ccc" }}
+          />
+        </div>
         <button
           type="submit"
           style={{
-            padding: "0.75rem",
-            backgroundColor: "#4caf50",
-            color: "#ffffff",
+            width: "100%",
+            padding: "10px",
+            backgroundColor: "#007BFF",
+            color: "white",
             border: "none",
             borderRadius: "4px",
-            fontSize: "1rem",
-            cursor: "pointer",
           }}
         >
-          Register
+          Zarejestruj się
         </button>
       </form>
     </div>
