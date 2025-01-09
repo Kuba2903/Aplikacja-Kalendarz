@@ -13,7 +13,21 @@ const Navigation = () => {
       <h1>MyApp</h1>
       <nav>
         {user ? (
-          <div style={{ color: "white" }}>
+          <div style={{ color: "white", display: "flex", alignItems: "center", gap: "10px" }}>
+            {user.photoURL ? (
+              <img 
+                src={user.photoURL} 
+                alt="Profile" 
+                style={{ 
+                  width: "32px", 
+                  height: "32px", 
+                  borderRadius: "50%",
+                  objectFit: "cover"
+                }} 
+              />
+            ) : (
+              <FaUser size={24} />
+            )}
             Hello, {user.displayName || user.email}
           </div>
         ) : (
